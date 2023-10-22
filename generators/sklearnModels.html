@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/codeMirror.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/theme/darcula.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/generator.css">
+    <title>Scikit-Learn Code Generator</title>
+
+</head>
+
+<body>
+    <div class="sidenav">
+        <a href="./index.html" class="pagesHeader">ML Utilities</a>
+        <a href="../generators/pythonTensorflowgenerator.code.html">TensorflowJs Model Generator</a>
+        <a href="../generators/pythonTensorflowgenerator.code.html">Tensorflow Generator</a>
+        <a href="../generators/sklearnModels.html">Sklearn Model Generators</a>
+        <a href="../generators/pytorch code generator.html">Pytorch Model Generators</a>
+
+        <a href="#" class="pagesHeader">Math Model Training</a>
+        <a href="line.html">Linear Models</a>
+        <a href="sqaured.html">Squared Models</a>
+        <a href="cubic.html">Cubic Models</a>
+        <a href="quartic.html">Quartic Models</a>
+        <a href="cosLinear.html">Cosine Linear Models</a>
+        <a href="sineLinear.html">Sine Linear Models</a>
+
+
+        <a href="#" class="pagesHeader">Image Model Training</a>
+        <a href="#">Linear M</a>
+        <a href="#">Quadratic Models</a>
+
+        <a href="#" class="pagesHeader">Image Models</a>
+        <a href="#">Linear M</a>
+        <a href="#">Quadratic Models</a>
+    </div>
+
+
+    <h1>Scikit-Learn Code Generator</h1>
+    <h2>Regression Models</h2>
+    <label for="modelSelect">Select a Regression Model:</label>
+    <select id="modelSelect">
+        <option value="LinearRegression">Linear Regression</option>
+        <option value="LassoRegression">Lasso Regression</option>
+        <option value="RidgeRegression">Ridge Regression</option>
+        <option value="SVR">Support Vector Regression (SVR)</option>
+        <option value="DecisionTreeRegression">Decision Tree Regression</option>
+        <option value="RandomForestRegression">Random Forest Regression</option>
+
+    </select>
+
+    <div id="parametersForm">
+        <!-- Linear Regression Form -->
+        <div id="linearRegressionForm" class="regression-form" style="display: none;">
+            <label for="fitIntercept">Fit Intercept:</label>
+            <select id="fitIntercept">
+                <option value="True">True</option>
+                <option value="False">False</option>
+            </select>
+        </div>
+
+        <!-- Lasso Regression Form -->
+        <div id="lassoRegressionForm" class="regression-form" style="display: none;">
+            <label for="alpha">Alpha:</label>
+            <input type="number" id="alpha" value="1.0">
+        </div>
+
+        <!-- Ridge Regression Form -->
+        <div id="ridgeRegressionForm" class="regression-form" style="display: none;">
+            <label for="alpha">Alpha:</label>
+            <input type="number" id="alpha" value="1.0">
+        </div>
+
+        <!-- Support Vector Regression Form -->
+        <div id="svrForm" class="regression-form" style="display: none;">
+            <label for="svrKernel">Kernel:</label>
+            <select id="svrKernel">
+                <option value="linear">Linear</option>
+                <option value="rbf">RBF</option>
+                <option value="poly">Polynomial</option>
+                <option value="sigmoid">Sigmoid</option>
+            </select>
+            <label for="svrC">C (Regularization Parameter):</label>
+            <input type="number" id="svrC" value="1.0">
+        </div>
+
+        <!-- Decision Tree Regression Form -->
+        <div id="decisionTreeRegressionForm" class="regression-form" style="display: none;">
+            <label for="maxDepth">Max Depth:</label>
+            <input type="number" id="maxDepth" value="None">
+            <label for="minSamplesSplit">Min Samples Split:</label>
+            <input type="number" id="minSamplesSplit" value="2">
+        </div>
+
+        <!-- Random Forest Regression Form -->
+        <div id="randomForestRegressionForm" class="regression-form" style="display: none;">
+            <label for="nEstimators">Number of Estimators:</label>
+            <input type="number" id="nEstimators" value="100">
+            <label for="maxFeatures">Max Features:</label>
+            <select id="maxFeatures">
+                <option value="auto">Auto</option>
+                <option value="sqrt">Sqrt</option>
+                <option value="log2">Log2</option>
+            </select>
+        </div>
+    </div>
+
+
+
+    <button id="generateButton">Generate Scikit-Learn Regression Code</button>
+
+    <div id="codeOutput">
+        <textarea id="codeEditor"></textarea>
+    </div>
+
+
+    <!--Classsification functions-->
+    <h2>Classification Models</h2>
+    <label for="modelSelect2">Select a Classification Model:</label>
+    <select id="modelSelect2">
+        <option value="LogisticRegression">Logistic Regression</option>
+        <option value="KNN">K-Nearest Neighbors (KNN)</option>
+        <option value="SVM">Support Vector Machines (SVM)</option>
+        <option value="DecisionTree">Decision Trees</option>
+        <option value="RandomForest">Random Forest Classifier</option>
+        <option value="NaiveBayes">Naive Bayes</option>
+        <option value="GradientBoosting">Gradient Boosting</option>
+    </select>
+
+
+    <div id="parametersForm2">
+        <!-- Logistic Regression Form -->
+        <div id="logisticRegressionForm" class="classification-form" style="display: none;">
+            <label for="C">Regularization Parameter (C):</label>
+            <input type="number" id="C" value="1.0">
+        </div>
+
+        <!-- K-Nearest Neighbors Form -->
+        <div id="knnForm" class="classification-form" style="display: none;">
+            <label for="nNeighbors">Number of Neighbors:</label>
+            <input type="number" id="nNeighbors" value="5">
+        </div>
+
+        <!-- Support Vector Machines Form -->
+        <div id="svmForm" class="classification-form" style="display: none;">
+            <label for="svmKernel">Kernel:</label>
+            <select id="svmKernel">
+                <option value="linear">Linear</option>
+                <option value="rbf">RBF</option>
+                <option value="poly">Polynomial</option>
+            </select>
+            <label for="svmC">C (Regularization Parameter):</label>
+            <input type="number" id="svmC" value="1.0">
+        </div>
+
+        <!-- Decision Trees Form -->
+        <div id="decisionTreeForm" class="classification-form" style="display: none;">
+            <label for="maxDepth">Max Depth:</label>
+            <input type="number" id="maxDepth" value="None">
+            <label for="minSamplesSplit">Min Samples Split:</label>
+            <input type="number" id="minSamplesSplit" value="2">
+        </div>
+
+        <!-- Random Forest Classifier Form -->
+        <div id="randomForestForm" class="classification-form" style="display: none;">
+            <label for="nEstimators">Number of Estimators:</label>
+            <input type="number" id="nEstimators" value="100">
+            <label for="maxFeatures">Max Features:</label>
+            <select id="maxFeatures">
+                <option value="auto">Auto</option>
+                <option value="sqrt">Sqrt</option>
+                <option value="log2">Log2</option>
+            </select>
+        </div>
+
+        <!-- Naive Bayes Form -->
+        <div id="naiveBayesForm" class="classification-form" style="display: none;">
+            <label for="naiveBayesType">Naive Bayes Type:</label>
+            <select id="naiveBayesType">
+                <option value="GaussianNB">Gaussian Naive Bayes</option>
+                <option value="MultinomialNB">Multinomial Naive Bayes</option>
+                <option value="ComplementNB">Complement Naive Bayes</option>
+            </select>
+        </div>
+
+        <!-- Gradient Boosting Form -->
+        <div id="gradientBoostingForm" class="classification-form" style="display: none;">
+            <label for="nEstimators">Number of Estimators:</label>
+            <input type="number" id="nEstimators" value="100">
+            <label for="learningRate">Learning Rate:</label>
+            <input type="number" id="learningRate" value="0.1">
+        </div>
+    </div>
+
+    <button id="generateButton2">Generate Scikit-Learn Classification Code</button>
+
+    <div id="codeOutput2">
+        <textarea id="codeEditor2"></textarea>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/codemirror.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.0/mode/python/python.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const modelSelect = document.getElementById('modelSelect');
+            const modelSelect2 = document.getElementById('modelSelect2');
+            const parametersForm = document.getElementById('parametersForm');
+            const parametersForm2 = document.getElementById('parametersForm2');
+            const generateButton = document.getElementById('generateButton');
+            const generateButton2 = document.getElementById('generateButton2');
+
+            const codeOutput = document.getElementById('codeOutput');
+            const codeEditor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+                mode: 'python',
+                theme: 'darcula',
+                lineNumbers: true,
+                readOnly: true,
+                extraKeys: { Tab: false }, // Disable the Tab key to prevent unwanted indentation
+                tabSize: 2, // Set the indent size to 2 spaces
+            });
+            const codeOutput2 = document.getElementById('codeOutput2');
+            const codeEditor2 = CodeMirror.fromTextArea(document.getElementById('codeEditor2'), {
+                mode: 'python',
+                theme: 'darcula',
+                lineNumbers: true,
+                readOnly: true,
+                extraKeys: { Tab: false }, // Disable the Tab key to prevent unwanted indentation
+                tabSize: 2, // Set the indent size to 2 spaces
+            });
+
+            modelSelect.addEventListener('change', function () {
+                const selectedModel = modelSelect.value;
+                const regressionForms = document.querySelectorAll('.regression-form');
+
+                regressionForms.forEach((form) => (form.style.display = 'none'));
+
+                if (selectedModel === 'LinearRegression') {
+                    document.getElementById('linearRegressionForm').style.display = 'block';
+                } else if (selectedModel === 'LassoRegression') {
+                    document.getElementById('lassoRegressionForm').style.display = 'block';
+                } else if (selectedModel === 'RidgeRegression') {
+                    document.getElementById('ridgeRegressionForm').style.display = 'block';
+                } else if (selectedModel === 'SVR') {
+                    document.getElementById('svrForm').style.display = 'block';
+                } else if (selectedModel === 'DecisionTreeRegression') {
+                    document.getElementById('decisionTreeRegressionForm').style.display = 'block';
+                } else if (selectedModel === 'RandomForestRegression') {
+                    document.getElementById('randomForestRegressionForm').style.display = 'block';
+                }
+            });
+
+            modelSelect2.addEventListener('change', function () {
+                const selectedModel = modelSelect2.value;
+                const classificationForms = document.querySelectorAll('.classification-form');
+
+                classificationForms.forEach((form) => (form.style.display = 'none'));
+
+                if (selectedModel === 'LogisticRegression') {
+                    document.getElementById('logisticRegressionForm').style.display = 'block';
+                } else if (selectedModel === 'KNN') {
+                    document.getElementById('knnForm').style.display = 'block';
+                } else if (selectedModel === 'SVM') {
+                    document.getElementById('svmForm').style.display = 'block';
+                } else if (selectedModel === 'DecisionTree') {
+                    document.getElementById('decisionTreeForm').style.display = 'block';
+                } else if (selectedModel === 'RandomForest') {
+                    document.getElementById('randomForestForm').style.display = 'block';
+                } else if (selectedModel === 'NaiveBayes') {
+                    document.getElementById('naiveBayesForm').style.display = 'block';
+                } else if (selectedModel === 'GradientBoosting') {
+                    document.getElementById('gradientBoostingForm').style.display = 'block';
+                }
+            });
+
+            generateButton.addEventListener('click', function () {
+                const selectedModel = modelSelect.value;
+                let code = '';
+
+                if (selectedModel === 'LinearRegression') {
+                    const fitIntercept = document.getElementById('fitIntercept').value;
+                    code = linearRegressionModel(fitIntercept);
+                } else if (selectedModel === 'LassoRegression') {
+                    const alpha = document.getElementById('alpha').value;
+                    code = lassoRegressionModel(alpha);
+                } else if (selectedModel === 'RidgeRegression') {
+                    const alpha = document.getElementById('alpha').value;
+                    code = ridgeRegressionModel(alpha);
+                }
+                codeEditor.setValue(code);
+            });
+
+            generateButton2.addEventListener('click', function () {
+                const selectedModel = modelSelect2.value;
+                let code = '';
+
+                if (selectedModel === 'LogisticRegression') {
+                    const C = document.getElementById('C').value;
+                    code = logisticRegressionModel(C);
+                } else if (selectedModel === 'KNN') {
+                    const nNeighbors = document.getElementById('nNeighbors').value;
+                    code = knnModel(nNeighbors);
+                } else if (selectedModel === 'SVM') {
+                    const svmKernel = document.getElementById('svmKernel').value;
+                    const svmC = document.getElementById('svmC').value;
+                    code = svmModel(svmKernel, svmC);
+                } else if (selectedModel === 'DecisionTree') {
+                    const maxDepth = document.getElementById('maxDepth').value;
+                    const minSamplesSplit = document.getElementById('minSamplesSplit').value;
+                    code = decisionTreeModel(maxDepth, minSamplesSplit);
+                } else if (selectedModel === 'RandomForest') {
+                    const nEstimators = document.getElementById('nEstimators').value;
+                    const maxFeatures = document.getElementById('maxFeatures').value;
+                    code = randomForestModel(nEstimators, maxFeatures);
+                } else if (selectedModel === 'NaiveBayes') {
+                    const naiveBayesType = document.getElementById('naiveBayesType').value;
+                    code = naiveBayesModel(naiveBayesType);
+                } else if (selectedModel === 'GradientBoosting') {
+                    const nEstimators = document.getElementById('nEstimators').value;
+                    const learningRate = document.getElementById('learningRate').value;
+                    code = gradientBoostingModel(nEstimators, learningRate);
+                }
+                codeEditor2.setValue(code);
+            });
+
+
+        })
+
+        // Function to generate code for Linear Regression model
+        function linearRegressionModel(fitIntercept) {
+            const imports = `
+                from sklearn.linear_model import LinearRegression
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error
+            `;
+            const parameters = `
+                # Create and configure the Linear Regression model
+                model = LinearRegression(fit_intercept=${fitIntercept})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Lasso Regression model
+        function lassoRegressionModel(alpha) {
+            const imports = `
+                from sklearn.linear_model import Lasso
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error
+            `;
+
+            const parameters = `
+                # Create and configure the Lasso Regression model
+                model = Lasso(alpha=${alpha})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")
+            `;
+
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Ridge Regression model
+        function ridgeRegressionModel(alpha) {
+            const imports = `
+                from sklearn.linear_model import Ridge
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error
+            `;
+
+            const parameters = `
+                # Create and configure the Ridge Regression model
+                model = Ridge(alpha=${alpha})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")
+            `;
+
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Support Vector Regression (SVR) model
+        function svrModel(kernel, c) {
+            const imports = `
+                from sklearn.svm import SVR
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error`;
+            const parameters = `
+                # Create and configure the SVR model
+                model = SVR(kernel='${kernel}', C=${c})`;
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)`;
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")`;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Decision Tree Regression model
+        function decisionTreeRegressionModel(maxDepth, minSamplesSplit) {
+            const imports = `
+                from sklearn.tree import DecisionTreeRegressor
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error`;
+            const parameters = `
+                # Create and configure the Decision Tree Regression model
+                model = DecisionTreeRegressor(max_depth=${maxDepth}, min_samples_split=${minSamplesSplit})`;
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)`;
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")`;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Random Forest Regression model
+        function randomForestRegressionModel(nEstimators, maxFeatures) {
+            const imports = `
+                from sklearn.ensemble import RandomForestRegressor
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import mean_squared_error
+                `;
+            const parameters = `
+                # Create and configure the Random Forest Regression model
+                model = RandomForestRegressor(n_estimators=${nEstimators}, max_features='${maxFeatures}')`;
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)`;
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the mean squared error
+                mse = mean_squared_error(y_test, y_pred)
+                print(f"Mean Squared Error: {mse}")
+                `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Logistic Regression model
+        function logisticRegressionModel(C) {
+            const imports = `
+                from sklearn.linear_model import LogisticRegression
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Logistic Regression model
+                model = LogisticRegression(C=${C})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for K-Nearest Neighbors (KNN) model
+        function knnModel(nNeighbors) {
+            const imports = `
+                from sklearn.neighbors import KNeighborsClassifier
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the K-Nearest Neighbors (KNN) model
+                model = KNeighborsClassifier(n_neighbors=${nNeighbors})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Support Vector Machines (SVM) model
+        function svmModel(svmKernel, svmC) {
+            const imports = `
+                from sklearn.svm import SVC
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Support Vector Machines (SVM) model
+                model = SVC(kernel='${svmKernel}', C=${svmC})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Decision Trees model
+        function decisionTreeModel(maxDepth, minSamplesSplit) {
+            const imports = `
+                from sklearn.tree import DecisionTreeClassifier
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Decision Trees model
+                model = DecisionTreeClassifier(max_depth=${maxDepth}, min_samples_split=${minSamplesSplit})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Random Forest Classifier model
+        function randomForestModel(nEstimators, maxFeatures) {
+            const imports = `
+                from sklearn.ensemble import RandomForestClassifier
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Random Forest Classifier model
+                model = RandomForestClassifier(n_estimators=${nEstimators}, max_features='${maxFeatures}')
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Naive Bayes model
+        function naiveBayesModel(naiveBayesType) {
+            const imports = `
+                from sklearn.naive_bayes import ${naiveBayesType}
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Naive Bayes model
+                model = ${naiveBayesType}()
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+        // Function to generate code for Gradient Boosting model
+        function gradientBoostingModel(nEstimators, learningRate) {
+            const imports = `
+                from sklearn.ensemble import GradientBoostingClassifier
+                from sklearn.model_selection import train_test_split
+                from sklearn.metrics import accuracy_score
+            `;
+            const parameters = `
+                # Create and configure the Gradient Boosting model
+                model = GradientBoostingClassifier(n_estimators=${nEstimators}, learning_rate=${learningRate})
+            `;
+
+            const fitting = `
+                # Split the data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                # Fit the model to the training data
+                model.fit(X_train, y_train)
+            `;
+
+            const evaluation = `
+                # Make predictions on the test set
+                y_pred = model.predict(X_test)
+
+                # Calculate the accuracy
+                accuracy = accuracy_score(y_test, y_pred)
+                print(f"Accuracy: {accuracy}")
+            `;
+            return imports + parameters + fitting + evaluation;
+        }
+
+
+    </script>
+</body>
+
+</html>

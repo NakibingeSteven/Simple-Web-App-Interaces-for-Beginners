@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Track</title>
+    <style>
+        canvas {
+            border: 1px solid #000;
+            background-color: #ccc;
+            display: block;
+            margin: 0 auto;
+        }
+
+        button {
+            display: block;
+            margin: 10px auto;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="raceTrack" width="800" height="600"></canvas>
+    <button id="trainButton">Train</button>
+    <button id="trainModelButton" disabled>Train Model</button>
+    <div id="data" style="margin: 10px auto; width: 400px; height: 200px; overflow: auto;"></div>
+    <script>
+        const canvas = document.getElementById("raceTrack");
+        const context = canvas.getContext("2d");
+        const ballRadius = 10;
+        const cornerRadius = 40;
+        const roadThickness = 30;
+        const roadColor = "#333";
+        const innerRectWidth = canvas.width - 2 * cornerRadius;
+        const innerRectHeight = canvas.height - 2 * cornerRadius;
+        const trackWidth = innerRectWidth - 2 * ballRadius;
+        const trackHeight = innerRectHeight - 2 * ballRadius;
+        let ballX = cornerRadius + ballRadius;
+        let ballY = cornerRadius + ballRadius;
+        let isTraining = false;
+        let dataLog = [];
+        let isLogging = false;
+
+        const trainButton = document.getElementById("trainButton");
+        const trainModelButton = document.getElementById("trainModelButton");
+        const dataDiv = document.getElementById("data");
+
+        // Function to clear the canvas
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Function to draw the race track
+        function drawRaceTrack() {
+            // Create a rounded rectangle path
+            context.beginPath();
+            context.moveTo(cornerRadius, 0);
+            context.lineTo(canvas.width - cornerRadius, 0);
+            context.quadraticCurveTo(canvas.width, 0, canvas.width, cornerRadius);
+            context.lineTo(canvas.width, canvas.height - cornerRadius);
+            context.quadraticCurveTo(canvas.width, canvas.height, canvas.width - cornerRadius, canvas.height);
+            context.lineTo(cornerRadius, canvas.height - roadThickness);
+            context.quadraticCurveTo(0, canvas.height - roadThickness, 0, canvas.height - cornerRadius);
+            context.lineTo(0, cornerRadius);
+            context.quadraticCurveTo(0, 0, cornerRadius, 0);
+
+            // Set the stroke and fill style for the race track
+            context.strokeStyle = "#000";
+            context.lineWidth = 2;
+            context.fillStyle = "#99cc99"; // Green color for the track
+            context.fill();
+            context.stroke();
+
+            // Draw the road as a hollow rectangle
+            context.fillStyle = roadColor;
+            context.fillRect(cornerRadius + ballRadius, cornerRadius + ballRadius, trackWidth, roadThickness);
+            context.fillRect(cornerRadius + ballRadius, canvas.height - cornerRadius - roadThickness, trackWidth, roadThickness);
+            context.fillRect(cornerRadius + ballRadius, cornerRadius + ballRadius, roadThickness, trackHeight);
+            context.fillRect(canvas.width - cornerRadius - roadThickness, cornerRadius + ballRadius, roadThickness, trackHeight);
+        }
+
+        // Function to draw the ball
+        function drawBall(x, y) {
+            context.fillStyle = "#ff0000"; // Red color for the ball
+            context.beginPath();
+            context.arc(x, y, ballRadius, 0, Math.PI * 2);
+            context.fill();
+        }
+
+        // Function to start logging data
+        function startLogging() {
+            if (isTraining) {
+                dataLog.push({ x: ballX, y: ballY });
+                dataDiv.innerHTML = JSON.stringify(dataLog);
+                setTimeout(startLogging, 1000); // Capture data every 1 second
+            }
+        }
+
+        trainButton.addEventListener("click", () => {
+            isTraining = true;
+            trainButton.disabled = true;
+            trainModelButton.disabled = false;
+            dataLog = [];
+            dataDiv.innerHTML = '';
+            isLogging = true;
+            startLogging();
+        });
+
+        trainModelButton.addEventListener("click", () => {
+            isLogging = false;
+            // You can use the data collected in dataLog to train your machine learning model here.
+        });
+
+        canvas.addEventListener("mousedown", (event) => {
+            if (isTraining) {
+                isLogging = false; // Stop auto-logging when the ball is manually moved
+                ballX = event.clientX - canvas.getBoundingClientRect().left;
+                ballY = event.clientY - canvas.getBoundingClientRect().top;
+                clearCanvas();
+                drawRaceTrack();
+                drawBall(ballX, ballY);
+            }
+        });
+
+        // Initial drawing of the race track and ball
+        drawRaceTrack();
+        drawBall(ballX, ballY);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="css/codeMirror.css">
+  <script src="js/codemirror.js"></script>
+  <script src="js/python.js"></script>
+  <link rel="stylesheet" href="css/generator.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="sidenav">
+    <a href="./index.html" class="pagesHeader">ML Utilities</a>
+    <a href="../generators/pythonTensorflowgenerator.code.html">TensorflowJs Model Generator</a>
+    <a href="../generators/pythonTensorflowgenerator.code.html">Tensorflow Generator</a>
+    <a href="../generators/sklearnModels.html">Sklearn Model Generators</a>
+    <a href="../generators/pytorch code generator.html">Pytorch Model Generators</a>
+
+    <a href="#" class="pagesHeader">Math Model Training</a>
+    <a href="line.html">Linear Models</a>
+    <a href="sqaured.html">Squared Models</a>
+    <a href="cubic.html">Cubic Models</a>
+    <a href="quartic.html">Quartic Models</a>
+    <a href="cosLinear.html">Cosine Linear Models</a>
+    <a href="sineLinear.html">Sine Linear Models</a>
+
+
+    <a href="#" class="pagesHeader">Image Model Training</a>
+    <a href="#">Linear M</a>
+    <a href="#">Quadratic Models</a>
+
+    <a href="#" class="pagesHeader">Image Models</a>
+    <a href="#">Linear M</a>
+    <a href="#">Quadratic Models</a>
+</div>
+  <div class="container">
+    <h1>PyTorch Model Generator</h1>
+    <form id="model-form">
+      <label for="optimizer">Optimizer:</label>
+      <select id="optimizer" required>
+        <option value="adam">Adam</option>
+        <option value="sgd">SGD</option>
+        <option value="rmsprop">RMSProp</option>
+      </select>
+
+      <label for="learning-rate">Learning Rate:</label>
+      <input type="number" id="learning-rate" step="0.001" required>
+
+      <label for="loss-function">Loss Function:</label>
+      <select id="loss-function" required>
+        <option value="mean_squared_error">Mean Squared Error</option>
+        <option value="categorical_crossentropy">Categorical Crossentropy</option>
+        <option value="binary_crossentropy">Binary Crossentropy</option>
+        <option value="custom">Custom Loss Function</option>
+      </select>
+
+      <label for="activation">Activation Function:</label>
+      <select id="activation" required>
+        <option value="relu">ReLU</option>
+        <option value="sigmoid">Sigmoid</option>
+        <option value="tanh">Tanh</option>
+        <option value="custom">Custom Activation Function</option>
+      </select>
+
+      <label for="epochs">Number of Epochs:</label>
+      <input type="number" id="epochs" required>
+
+      <label for="dataset-size">Total Dataset Size:</label>
+      <input type="number" id="dataset-size" required>
+
+      <label for="test-train-split">Train/Test Split:</label>
+      <input type="range" id="test-train-split" min="0" max="1" step="0.01" value="0.5">
+      <span id="split-value">0.5</span>
+
+      <label for="train-size">Training Data Size:</label>
+      <input type="text" id="train-size" class="readonly-input" readonly>
+
+      <label for="test-size">Testing Data Size:</label>
+      <input type="text" id="test-size" class="readonly-input" readonly>
+
+      <label for="input-size">Input Size:</label>
+      <input type="number" id="input-size" required>
+
+      <label for="output-size">Output Size:</label>
+      <input type="number" id="output-size" required>
+
+      <!-- Input field for the number of hidden layers -->
+      <label for="hidden-layers">Number of Hidden Layers:</label>
+      <input type="number" id="hidden-layers" required>
+
+      <!-- Container for hidden layer sub-forms -->
+      <div id="hidden-layer-forms"></div>
+
+      <button type="submit">Generate PyTorch Model</button>
+    </form>
+
+    <div id="python-code-output" class="code-block"></div>
+
+    <script>
+      function makeEditor(pythonCode) {
+        const codeBlock = document.getElementById("python-code-output");
+        const editor = CodeMirror(codeBlock, {
+          value: pythonCode,
+          mode: "python",
+          theme: "default",
+          lineNumbers: true,
+          readOnly: true
+        });
+      }
+
+      function generatePyTorchCode() {
+        const optimizer = document.getElementById("optimizer").value;
+        const learningRate = document.getElementById("learning-rate").value;
+        const lossFunction = document.getElementById("loss-function").value;
+        const activation = document.getElementById("activation").value;
+        const epochs = document.getElementById("epochs").value;
+        const datasetSize = document.getElementById("dataset-size").value;
+        const inputSize = document.getElementById("input-size").value;
+        const outputSize = document.getElementById("output-size").value;
+        const trainTestSplit = document.getElementById("test-train-split").value;
+
+        const hiddenLayers = document.getElementById("hidden-layers").value;
+
+        const customActivation = activation === "custom" ? "yourCustomActivationFunction" : `'${activation}'`;
+        const customLoss = lossFunction === "custom" ? "yourCustomLossFunction" : `'${lossFunction}'`;
+
+        const trainSize = Math.floor(datasetSize * trainTestSplit);
+        const testSize = datasetSize - trainSize;
+
+        let pythonCode = `import torch
+import torch.nn as nn
+
+# Define the model
+class CustomModel(nn.Module):
+    def __init__(self):
+        super(CustomModel, self).__init__()
+
+        self.input_layer = nn.Linear(${inputSize}, 10)
+`;
+
+        // Generate code for hidden layers based on user input
+        for (let i = 1; i <= hiddenLayers; i++) {
+          const unitsInput = document.getElementById(`hidden-units-${i}`).value;
+          const activationInput = document.getElementById(`hidden-activation-${i}`).value;
+
+          const hiddenActivation = activationInput === "custom" ? "nn.Module()" : `nn.${activationInput}()`;
+
+          if (i === hiddenLayers) {
+            pythonCode += `
+        self.hidden_layer_${i} = nn.Linear(10, ${unitsInput})
+        self.hidden_activation_${i} = ${hiddenActivation}
+
+        self.output_layer = nn.Linear(${unitsInput}, ${outputSize})\n`;
+          } else {
+            pythonCode += `
+        self.hidden_layer_${i} = nn.Linear(10, ${unitsInput})
+        self.hidden_activation_${i} = ${hiddenActivation}\n`;
+          }
+        }
+
+        pythonCode += `
+
+    def forward(self, x):
+        x = self.input_layer(x)`;
+        for (let i = 1; i <= hiddenLayers; i++) {
+          pythonCode += `
+        x = self.hidden_layer_${i}(x)
+        x = self.hidden_activation_${i}(x)`;
+        }
+
+        pythonCode += `
+        x = self.output_layer(x)
+        return x
+
+model = CustomModel()
+
+# Define the loss function
+criterion = nn.${customLoss}
+
+# Define the optimizer
+optimizer = torch.optim.${optimizer}(model.parameters(), lr=${learningRate})
+
+# Load and preprocess your datasets (x_train, y_train, x_test, y_test) here
+# Example: x_train = torch.randn(${trainSize}, ${inputSize})
+#          y_train = torch.randn(${trainSize}, ${outputSize})
+#          x_test = torch.randn(${testSize}, ${inputSize})
+#          y_test = torch.randn(${testSize}, ${outputSize})
+
+# Training loop
+for epoch in range(${epochs}):
+    # Forward pass
+    outputs = model(x_train)
+    loss = criterion(outputs, y_train)
+    
+    # Backward pass and optimization
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+`;
+
+        makeEditor(pythonCode);
+      }
+
+      // Function to add or remove hidden layer sub-forms
+      function updateHiddenLayerForms() {
+        const hiddenLayers = document.getElementById("hidden-layers").value;
+        const hiddenLayerFormsContainer = document.getElementById("hidden-layer-forms");
+        hiddenLayerFormsContainer.innerHTML = ""; // Clear existing forms
+
+        for (let i = 1; i <= hiddenLayers; i++) {
+          const subForm = document.createElement("form");
+          subForm.className = "hidden-layer-form";
+
+          const subLabel = document.createElement("label");
+          subLabel.textContent = `Hidden Layer ${i}`;
+          subForm.appendChild(subLabel);
+
+          const unitsInput = document.createElement("input");
+          unitsInput.type = "number";
+          unitsInput.id = `hidden-units-${i}`;
+          unitsInput.placeholder = `Units for Hidden Layer ${i}`;
+          subForm.appendChild(unitsInput);
+
+          // Add a select input for choosing activation functions for each hidden layer
+          const activationSelect = document.createElement("select");
+          activationSelect.id = `hidden-activation-${i}`;
+          activationSelect.innerHTML = `
+            <option value="relu">ReLU</option>
+            <option value="sigmoid">Sigmoid</option>
+            <option value="tanh">Tanh</option>
+            <option value="custom">Custom Activation Function</option>
+          `;
+          subForm.appendChild(activationSelect);
+
+          hiddenLayerFormsContainer.appendChild(subForm);
+        }
+      }
+
+      // Add an event listener to update hidden layer forms when the number of hidden layers changes
+      document.getElementById("hidden-layers").addEventListener("input", updateHiddenLayerForms);
+
+      // Update the slider value display and train/test size inputs
+      const splitValue = document.getElementById("split-value");
+      const trainTestSplit = document.getElementById("test-train-split");
+      splitValue.textContent = trainTestSplit.value;
+
+      trainTestSplit.addEventListener("input", function () {
+        splitValue.textContent = trainTestSplit.value;
+        const datasetSize = document.getElementById("dataset-size").value;
+        const trainSize = Math.floor(datasetSize * trainTestSplit.value);
+        const testSize = datasetSize - trainSize;
+
+        document.getElementById("train-size").value = trainSize;
+        document.getElementById("test-size").value = testSize;
+      });
+
+      // Add an event listener to update train and test size inputs when dataset size changes
+      document.getElementById("dataset-size").addEventListener("input", function () {
+        const datasetSize = document.getElementById("dataset-size").value;
+        const trainSize = Math.floor(datasetSize * trainTestSplit.value);
+        const testSize = datasetSize - trainSize;
+
+        document.getElementById("train-size").value = trainSize;
+        document.getElementById("test-size").value = testSize;
+      });
+
+      document.getElementById("model-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        generatePyTorchCode();
+      });
+
+      // Initialize hidden layer forms when the page loads
+      updateHiddenLayerForms();
+    </script>
+  </div>
+</body>
+
+</html>

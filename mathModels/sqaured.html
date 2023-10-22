@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8" />
+    <title>TensorFlow.js Prediction</title>
+
+    <!-- Load TensorFlow.js from a script tag -->
+    <script src="tf.min.js"></script>
+    <script src="chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="sidenav">
+        <a href="./index.html" class="pagesHeader">ML Utilities</a>
+        <a href="../generators/pythonTensorflowgenerator.code.html">TensorflowJs Model Generator</a>
+        <a href="../generators/pythonTensorflowgenerator.code.html">Tensorflow Generator</a>
+        <a href="../generators/sklearnModels.html">Sklearn Model Generators</a>
+        <a href="../generators/pytorch code generator.html">Pytorch Model Generators</a>
+
+        <a href="#" class="pagesHeader">Math Model Training</a>
+        <a href="line.html">Linear Models</a>
+        <a href="sqaured.html">Squared Models</a>
+        <a href="cubic.html">Cubic Models</a>
+        <a href="quartic.html">Quartic Models</a>
+        <a href="cosLinear.html">Cosine Linear Models</a>
+        <a href="sineLinear.html">Sine Linear Models</a>
+    </div>
+
+    <div class="container">
+        <h1>TensorFlow.js Prediction</h1>
+        <h2>Y= x squared</h2>
+        <!-- User input for optimizer, epochs, and value to predict -->
+        <div class="input-section">
+            <label for="optimizer">Select Optimizer:</label>
+            <select id="optimizer">
+                <option value="sgd">SGD</option>
+                <option value="adam">Adam</option>
+                <option value="rmsprop">RMSprop</option>
+                <option value="adagrad">Adagrad</option>
+                <option value="adamax">Adamax</option>
+                <option value="adadelta">Adadelta</option>
+            </select>
+
+            <label for="lossFunction">Select Loss Function:</label>
+            <select id="lossFunctionSelector" class="form-input">
+                <option value="meanSquaredError">Mean Squared Error</option>
+                <option value="meanAbsoluteError">Mean Absolute Error</option>
+                <option value="binaryCrossentropy">Binary Crossentropy</option>
+            </select>
+
+            <label for="epochs">Number of Epochs:</label>
+            <input type="number" id="epochs" value="10">
+
+            <label for="valueToPredict">Value to Predict (x):</label>
+            <input type="number" id="valueToPredict">
+
+            <button id="trainButton">Train Model</button>
+            <button id="predictButton">Predict</button>
+            <button id="clearChartButton">Clear Chart</button>
+            <button id="saveModelButton">Save Model</button>
+        </div>
+
+        <div class="result-section">
+            <div id="trainingLog"></div>
+            <div id="predictionResult"></div>
+            <div id="totalTime"></div>
+        </div>
+
+        <div class="chart-section">
+            <div class="loss-chart">
+                <canvas id="lossChart"></canvas>
+            </div>
+            <div class="xvsy-chart">
+                <canvas id="xvsyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        let model;
+        let xs, ys;
+        let trainingDone = false;
+        let startTime;
+        let losses = [];
+        let epochLabels = [];
+        let lossData = [];
+        let lossChart; // Store the chart instance
+        let myChart = null; // Initialize xvsyChart as null
+        let xyData = null;
+        // Generate data for training (y = 2x)
+        let dataX = [];
+        let dataY = [];
+        let lossFunction = null;
+
+        // Function to generate and return data for training
+        function generateTrainingData() {
+            for (let x = 0; x < 10; x++) {
+                dataX.push(x);
+                dataY.push(x * x);
+            }
+            const xs = tf.tensor2d(dataX, [dataX.length, 1]);
+            const ys = tf.tensor2d(dataY, [dataY.length, 1]);
+            console.log("xs is " + xs)
+            // Store the x vs y data
+            xyData = xs.arraySync().map((value, index) => ({ x: value[0], y: ys.arraySync()[index][0] }));
+            console.log("xydata is " + xyData)
+            // Initialize the chart with the populated xyData
+            //draw the xy chart
+            myChart = initializeChart();
+
+            return { xs, ys };
+        }
+
+        // Function to update the training log
+        function updateTrainingLog(log) {
+            const trainingLogDiv = document.getElementById("trainingLog");
+            trainingLogDiv.innerHTML += `${log}<br>`;
+            trainingLogDiv.scrollTop = trainingLogDiv.scrollHeight;
+        }
+
+        // Function to update the prediction result
+        function updatePredictionResult(prediction, actualValue, errorPercentage) {
+            const resultDiv = document.getElementById("predictionResult");
+            resultDiv.innerHTML = `Predicted Value: ${prediction.toFixed(2)}<br>Actual Value: ${actualValue.toFixed(2)}<br>Error Percentage: ${errorPercentage}%`;
+        }
+
+
+
+        // Function to perform prediction
+        function predict() {
+            if (!trainingDone) {
+                alert("Training is not done. Please train the model first.");
+                return;
+            }
+
+
+            const valueToPredict = parseFloat(document.getElementById("valueToPredict").value);
+            //cast to integer
+            const xValue = parseFloat(valueToPredict);
+            if (!isNaN(xValue)) {
+                // Use the trained model to make a prediction
+                //make it a tensor
+                const inputTensor = tf.tensor2d([valueToPredict], [1, 1]);
+                //make the prediction
+                const prediction = model.predict(inputTensor).dataSync()[0];
+
+                // Calculate and display the error percentage and actual value
+                const actualValue = valueToPredict * valueToPredict; // y = 2x
+                const errorPercentage = ((Math.abs(prediction - actualValue) / actualValue) * 100).toFixed(2);
+
+                // Display the prediction, actual value, and error percentage
+                const resultDiv = document.getElementById("predictionResult");
+                resultDiv.innerHTML = `Predicted Value: ${prediction.toFixed(2)}<br>Actual Value: ${actualValue.toFixed(2)}<br>Error Percentage: ${errorPercentage}%`;
+                updatePredictionResult(prediction, actualValue, errorPercentage);
+
+                //plot the xvlaue and its prediction
+                console.log(xValue);
+                console.log(prediction)
+                addNewPlot(xValue, prediction);
+                myChart.update();
+            }
+        }
+
+        function setupModel(optimizer, lossFunction) {
+            const newModel = tf.sequential();
+            newModel.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+            newModel.compile({ loss: lossFunction, optimizer: optimizer });
+            return newModel;
+        }
+
+        // Function to train the model
+        async function trainModel() {
+            const optimizer = document.getElementById("optimizer").value;
+            const lossFunctionSelected = document.getElementById("lossFunctionSelector").value; // Get the selected loss function
+            const epochs = parseInt(document.getElementById("epochs").value, 10);
+
+            // Generate training data
+            const { xs, ys } = generateTrainingData();
+
+            model = setupModel(optimizer, lossFunctionSelected);
+            await train(model, xs, ys, optimizer, epochs);
+            trainingDone = true;
+        }
+
+        // Function to create training log and x vs y chart elements
+        function createTrainingElements() {
+            const trainingLogDiv = document.getElementById("trainingLog");
+            trainingLogDiv.innerHTML = '';
+            const resultDiv = document.getElementById("predictionResult");
+            resultDiv.innerHTML = '';
+            losses = [];
+            epochLabels = [];
+            lossData = [];
+            xyData = [];
+            const xvsyChart = null;
+        }
+
+        // Function to train the model with given parameters
+        async function train(model, xs, ys, optimizer, epochs) {
+            createTrainingElements();
+            let startTime = new Date().getTime();
+            for (let epoch = 1; epoch <= epochs; epoch++) {
+                await model.fit(xs, ys, { epochs: 1 });
+                const loss = (await model.evaluate(xs, ys)).dataSync()[0];
+
+                const currentTime = new Date().getTime();
+                const epochTime = (currentTime - startTime) / 1000;
+
+                const trainingInfo = `Epoch ${epoch}: Loss ${loss.toFixed(4)} - Elapsed Time: ${epochTime.toFixed(2)} seconds`;
+                updateTrainingLog(trainingInfo);
+
+                losses.push(loss);
+                epochLabels.push(epoch);
+                lossData.push({ x: epoch, y: loss });
+
+                if (epoch === epochs) {
+                    trainingDone = true;
+                }
+            }
+
+            const endTime = new Date().getTime();
+            const totalTimeInSeconds = ((endTime - startTime) / 1000).toFixed(2);
+            const totalTimeDiv = document.getElementById("totalTime");
+            totalTimeDiv.innerHTML = `Total Training Time: ${totalTimeInSeconds} seconds`;
+            // Plot the loss curve
+            plotLossCurve();
+
+        }
+
+
+
+        // Function to plot the loss curve
+        function plotLossCurve() {
+            if (lossChart) {
+                lossChart.destroy(); // Destroy the previous chart
+            }
+
+            const ctx = document.getElementById('lossChart').getContext('2d');
+            lossChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: epochLabels,
+                    datasets: [
+                        {
+                            label: 'Loss',
+                            data: lossData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Epochs', // Add X-axis label
+                            },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Loss', // Add Y-axis label
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        // Function to plot actual and predicted values on the x vs y chart
+        function initializeChart() {
+            console.log(xyData)
+            const ctx = document.getElementById('xvsyChart').getContext('2d');
+            return new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: "X vs y Graph",
+                    datasets: [{
+                        label: 'y = 2x',
+                        data: xyData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        fill: false,
+                        showLine: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'X'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Y'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function addNewPlot(xValue, newYData) {
+            // Use a different variable for the x-value to avoid modifying the original xValue
+            myChart.data.datasets.push({
+                label: `x = ${xValue}, y = ${newYData}`,
+                data: [{ x: xValue, y: newYData }],
+                borderColor: 'red',
+                pointBackgroundColor: 'red',
+                pointRadius: 5,
+                fill: false,
+                showLine: false// Set showLine to false to prevent line connections
+            });
+        }
+
+        // Function to clear the chart
+        function clearChart() {
+            if (lossChart) {
+                lossChart.destroy(); // Destroy the chart
+                lossChart = null; // Set the chart instance to null
+            }
+            if (myChart) {
+                myChart.destroy(); // Destroy the chart
+                myChart = null; // Set the chart instance to null
+            }
+        }
+
+        // Function to save the model
+        async function saveModel() {
+            if (model) {
+                const saveResults = await model.save('downloads://my_model'); // Save the model as 'my_model.json'
+                if (saveResults) {
+                    alert('Model saved successfully.');
+                } else {
+                    alert('Failed to save the model.');
+                }
+            } else {
+                alert('No model to save. Please train the model first.');
+            }
+        }
+        // Add an event listener to the "Clear Chart" button
+        document.getElementById("clearChartButton").addEventListener("click", clearChart);
+        document.getElementById("trainButton").addEventListener("click", trainModel);
+        document.getElementById("predictButton").addEventListener("click", predict);
+        // Add an event listener to the "Save Model" button
+        // Add an event listener to the "Save Model" button
+        document.getElementById("saveModelButton").addEventListener("click", saveModel);
+
+
+    </script>
+</body>
+
+</html>

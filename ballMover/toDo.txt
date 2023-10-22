@@ -1,0 +1,14 @@
+WORLD
+Make a maze
+haeba ball move through it
+
+
+POINTS
+have a moving object when it 
+              knocks bottom wall,subtract 2 points
+              toches top wall,add 3 points
+            move in center ,add 5points
+
+actions
+to add proper styling
+look of proper way to train data for a rectangle circular  rough

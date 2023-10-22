@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Track</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            text-align: center;
+        }
+
+        #raceTrack {
+            border: 1px solid #000;
+            background-color: #ccc;
+            display: block;
+            margin: 20px auto;
+        }
+
+        .btn-container {
+            margin: 10px;
+        }
+
+        .btn-container button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .btn-container button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .data-container {
+            width: 400px;
+            height: 200px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            overflow: auto;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="raceTrack" width="800" height="600"></canvas>
+    <div class="btn-container">
+        <button id="getDataButton">Get Data</button>
+        <button id="stopDataButton" disabled>Stop Data</button>
+        <button id="saveJsonButton" disabled>Save JSON</button>
+        <button id="saveCsvButton" disabled>Save CSV</button>
+        <button id="trainModelButton" disabled>Train Model</button>
+        <button id="predictButton" disabled>Predict</button>
+    </div>
+    <div class="data-container" id="data"></div>
+    <script src="tf.min.js"></script>
+    <script>
+        const canvas = document.getElementById("raceTrack");
+        const context = canvas.getContext("2d");
+        const ballRadius = 10;
+        const cornerRadius = 40;
+        const roadThickness = 30;
+        const roadColor = "#333";
+        const innerRectWidth = canvas.width - 2 * cornerRadius;
+        const innerRectHeight = canvas.height - 2 * cornerRadius;
+        const trackWidth = innerRectWidth - 2 * ballRadius;
+        const trackHeight = innerRectHeight - 2 * ballRadius;
+        let ballX = cornerRadius + ballRadius;
+        let ballY = cornerRadius + ballRadius;
+        let isLogging = false;
+        let dataLog = [];
+        let isDragging = false;
+
+        const getDataButton = document.getElementById("getDataButton");
+        const stopDataButton = document.getElementById("stopDataButton");
+        const saveJsonButton = document.getElementById("saveJsonButton");
+        const saveCsvButton = document.getElementById("saveCsvButton");
+        const trainModelButton = document.getElementById("trainModelButton");
+        const dataDiv = document.getElementById("data");
+
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawRaceTrack() {
+            context.beginPath();
+            context.moveTo(cornerRadius, 0);
+            context.lineTo(canvas.width - cornerRadius, 0);
+            context.quadraticCurveTo(canvas.width, 0, canvas.width, cornerRadius);
+            context.lineTo(canvas.width, canvas.height - cornerRadius);
+            context.quadraticCurveTo(canvas.width, canvas.height, canvas.width - cornerRadius, canvas.height);
+            context.lineTo(cornerRadius, canvas.height - roadThickness);
+            context.quadraticCurveTo(0, canvas.height - roadThickness, 0, canvas.height - cornerRadius);
+            context.lineTo(0, cornerRadius);
+            context.quadraticCurveTo(0, 0, cornerRadius, 0);
+
+            context.strokeStyle = "#000";
+            context.lineWidth = 2;
+            context.fillStyle = "#99cc99";
+            context.fill();
+            context.stroke();
+
+            context.fillStyle = roadColor;
+            context.fillRect(cornerRadius + ballRadius, cornerRadius + ballRadius, trackWidth, roadThickness);
+            context.fillRect(cornerRadius + ballRadius, canvas.height - cornerRadius - roadThickness, trackWidth, roadThickness);
+            context.fillRect(cornerRadius + ballRadius, cornerRadius + ballRadius, roadThickness, trackHeight);
+            context.fillRect(canvas.width - cornerRadius - roadThickness, cornerRadius + ballRadius, roadThickness, trackHeight);
+        }
+
+        function drawBall(x, y) {
+            context.fillStyle = "#ff0000";
+            context.beginPath();
+            context.arc(x, y, ballRadius, 0, Math.PI * 2);
+            context.fill();
+        }
+
+        function startLogging() {
+            if (isLogging) {
+                dataLog.push({ x: ballX, y: ballY });
+                dataDiv.innerHTML = JSON.stringify(dataLog);
+                setTimeout(startLogging, 1000);
+            }
+        }
+
+        getDataButton.addEventListener("click", () => {
+            if (!isLogging) {
+                isLogging = true;
+                dataLog = [];
+                dataDiv.innerHTML = '';
+                startLogging();
+                getDataButton.disabled = true;
+                stopDataButton.disabled = false;
+                saveJsonButton.disabled = true;
+                saveCsvButton.disabled = true;
+                trainModelButton.disabled = true;
+            }
+        });
+
+        stopDataButton.addEventListener("click", () => {
+            isLogging = false;
+            getDataButton.disabled = false;
+            stopDataButton.disabled = true;
+            saveJsonButton.disabled = false;
+            saveCsvButton.disabled = false;
+            trainModelButton.disabled = false;
+        });
+
+        saveJsonButton.addEventListener("click", () => {
+            const jsonData = JSON.stringify(dataLog, null, 2);
+            const blob = new Blob([jsonData], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "data.json";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        saveCsvButton.addEventListener("click", () => {
+            const csvContent = "x,y\n" + dataLog.map(item => `${item.x},${item.y}`).join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "data.csv";
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        trainModelButton.addEventListener("click", () => {
+            const tf = window.tf;
+            if (tf) {
+                // Create a more complex model with multiple hidden layers
+                const model = tf.sequential();
+                model.add(tf.layers.dense({ units: 64, inputShape: [1], activation: 'relu' }));
+                model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+                model.add(tf.layers.dense({ units: 1 }));
+
+                model.compile({ loss: 'meanSquaredError', optimizer: 'adam' });
+
+                const xs = tf.tensor(dataLog.map(item => item.x));
+                const ys = tf.tensor(dataLog.map(item => item.y));
+
+                model.fit(xs, ys, {
+                    epochs: 100,
+                    callbacks: {
+                        onEpochEnd: (epoch, logs) => {
+                            console.log(`Epoch ${epoch}: loss = ${logs.loss}`);
+                        }
+                    }
+                }).then(() => {
+                    console.log('Model training completed.');
+                });
+            } else {
+                console.error('TensorFlow.js not loaded. Make sure to include it via a CDN.');
+            }
+        });
+
+
+        canvas.addEventListener("mousedown", (event) => {
+            const mouseX = event.clientX - canvas.getBoundingClientRect().left;
+            const mouseY = event.clientY - canvas.getBoundingClientRect().top;
+
+            if (isLogging) {
+                if (
+                    mouseX >= ballX - ballRadius &&
+                    mouseX <= ballX + ballRadius &&
+                    mouseY >= ballY - ballRadius &&
+                    mouseY <= ballY + ballRadius
+                ) {
+                    isDragging = true;
+                }
+            }
+        });
+
+        canvas.addEventListener("mousemove", (event) => {
+            if (isDragging) {
+                ballX = event.clientX - canvas.getBoundingClientRect().left;
+                ballY = event.clientY - canvas.getBoundingClientRect().top;
+                clearCanvas();
+                drawRaceTrack();
+                drawBall(ballX, ballY);
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        drawRaceTrack();
+        drawBall(ballX, ballY);
+        // You can add CSS styles to the buttons and containers as described above.
+
+        // Add predict button functionality
+        const predictButton = document.getElementById("predictButton");
+        predictButton.addEventListener("click", () => {
+            if (model) {
+                clearCanvas();
+                drawRaceTrack();
+                // Start the ball at the beginning of the track
+                ballX = cornerRadius + ballRadius;
+                ballY = cornerRadius + ballRadius;
+                const path = [];
+
+                // Predict the path along the track using the trained model
+                for (let i = 0; i < trackWidth; i++) {
+                    const prediction = model.predict(tf.tensor([[i]]));
+                    const predictionValue = prediction.dataSync()[0];
+                    path.push({ x: i, y: predictionValue });
+                }
+
+                // Draw the predicted path
+                context.strokeStyle = "#0000FF"; // Blue color for the predicted path
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(path[0].x, path[0].y);
+                for (let i = 1; i < path.length; i++) {
+                    context.lineTo(path[i].x, path[i].y);
+                }
+                context.stroke();
+            } else {
+                console.error('Model is not trained. Please train the model first.');
+            }
+        });
+    </script>
+</body>
+
+</html>
